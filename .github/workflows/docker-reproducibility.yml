@@ -1,0 +1,56 @@
+name: Docker test reproducibility
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-on-clean-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Show clean runner and Docker versions
+        run: |
+          uname -a
+          docker version
+
+      - name: Build the separate test image
+        run: docker build -f Dockerfile.test -t durian-test .
+
+      - name: Run held-out test evaluation
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/data/durian_leaf_dataset:/app/data:ro" \
+            -v "$GITHUB_WORKSPACE/models:/app/models" \
+            -e MODEL_PATH=/app/models/learning_rate_0005/best_model.pth \
+            durian-test
+
+      - name: Check metrics against the report
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path("models/evaluation/test_results.json").read_text())
+          expected = {"accuracy": 0.6389, "weighted_f1": 0.6383}
+          for key, target in expected.items():
+              actual = result[key]
+              print(f"{key}: {actual:.4f} (report: {target:.4f})")
+              if abs(actual - target) > 0.001:
+                  raise SystemExit(f"{key} differs from the report")
+          PY
+
+      - name: Predict on a new image, if supplied
+        if: ${{ hashFiles('demo/new_leaf.jpg') != '' }}
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/models:/app/models:ro" \
+            -v "$GITHUB_WORKSPACE/demo/new_leaf.jpg:/app/new_leaf.jpg:ro" \
+            --entrypoint python durian-test \
+            /app/src/predict.py /app/new_leaf.jpg \
+            --model /app/models/learning_rate_0005/best_model.pth
+
+      - name: Note if no new image was supplied
+        if: ${{ hashFiles('demo/new_leaf.jpg') == '' }}
+        run: echo "Prediction skipped: add a new, non-dataset image at demo/new_leaf.jpg and rerun this workflow."
