@@ -1,3 +1,4 @@
+
 name: Docker test reproducibility
 
 on:
@@ -41,7 +42,7 @@ jobs:
                   raise SystemExit(f"{key} differs from the report")
           PY
 
-       - name: Predict on a new image, if supplied
+      - name: Predict on a new image, if supplied
         run: |
           if [ -f demo/new_leaf.jpg ]; then
             docker run --rm \
