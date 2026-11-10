@@ -16,7 +16,10 @@ def main():
     with Image.open(a.image) as img: x=tf(img.convert('RGB')).unsqueeze(0).to(device)
     with torch.no_grad(): probs=F.softmax(model(x),dim=1)[0]
     order=probs.argsort(descending=True)
-    print(f"Prediction: {classes[order[0]]} ({probs[order[0]].item():.4f})")
-    for i in order: print(f"{classes[i]}: {probs[i].item():.4f}")
+    print(f"Predicted class: {classes[order[0]]}")
+    print(f"Confidence: {probs[order[0]].item() * 100:.2f}%")
+    print("Class probabilities:")
+    for i in order:
+        print(f"  {classes[i]}: {probs[i].item() * 100:.2f}%")
 
 if __name__=='__main__':main()
