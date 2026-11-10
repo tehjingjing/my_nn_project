@@ -41,16 +41,15 @@ jobs:
                   raise SystemExit(f"{key} differs from the report")
           PY
 
-      - name: Predict on a new image, if supplied
-        if: ${{ hashFiles('demo/new_leaf.jpg') != '' }}
+       - name: Predict on a new image, if supplied
         run: |
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE/models:/app/models:ro" \
-            -v "$GITHUB_WORKSPACE/demo/new_leaf.jpg:/app/new_leaf.jpg:ro" \
-            --entrypoint python durian-test \
-            /app/src/predict.py /app/new_leaf.jpg \
-            --model /app/models/learning_rate_0005/best_model.pth
-
-      - name: Note if no new image was supplied
-        if: ${{ hashFiles('demo/new_leaf.jpg') == '' }}
-        run: echo "Prediction skipped: add a new, non-dataset image at demo/new_leaf.jpg and rerun this workflow."
+          if [ -f demo/new_leaf.jpg ]; then
+            docker run --rm \
+              -v "$GITHUB_WORKSPACE/models:/app/models:ro" \
+              -v "$GITHUB_WORKSPACE/demo/new_leaf.jpg:/app/new_leaf.jpg:ro" \
+              --entrypoint python durian-test \
+              /app/src/predict.py /app/new_leaf.jpg \
+              --model /app/models/learning_rate_0005/best_model.pth
+          else
+            echo "Prediction skipped: add a new image at demo/new_leaf.jpg and rerun."
+          fi
