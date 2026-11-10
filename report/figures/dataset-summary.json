@@ -1,0 +1,44 @@
+{
+  "splits": {
+    "train": {
+      "ALGAL_LEAF_SPOT": 513,
+      "ALLOCARIDARA_ATTACK": 639,
+      "HEALTHY_LEAF": 683,
+      "LEAF_BLIGHT": 655,
+      "PHOMOPSIS_LEAF_SPOT": 614
+    },
+    "val": {
+      "ALGAL_LEAF_SPOT": 73,
+      "ALLOCARIDARA_ATTACK": 91,
+      "HEALTHY_LEAF": 97,
+      "LEAF_BLIGHT": 94,
+      "PHOMOPSIS_LEAF_SPOT": 88
+    },
+    "test": {
+      "ALGAL_LEAF_SPOT": 147,
+      "ALLOCARIDARA_ATTACK": 183,
+      "HEALTHY_LEAF": 196,
+      "LEAF_BLIGHT": 187,
+      "PHOMOPSIS_LEAF_SPOT": 176
+    }
+  },
+  "total": 4436,
+  "class_totals": {
+    "ALGAL_LEAF_SPOT": 733,
+    "ALLOCARIDARA_ATTACK": 913,
+    "HEALTHY_LEAF": 976,
+    "LEAF_BLIGHT": 936,
+    "PHOMOPSIS_LEAF_SPOT": 878
+  },
+  "train_distinct_dimensions": 1,
+  "train_most_common_dimensions": [
+    [
+      [
+        224,
+        224
+      ],
+      3104
+    ]
+  ],
+  "train_corrupt_images": []
+}

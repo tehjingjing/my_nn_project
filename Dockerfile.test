@@ -1,0 +1,7 @@
+FROM python:3.13-slim
+WORKDIR /app
+COPY requirements-test.txt .
+RUN pip install --no-cache-dir -r requirements-test.txt
+COPY src/ /app/src/
+ENV PYTHONPATH=/app/src DURIAN_DATA_DIR=/app/data MODEL_PATH=/app/models/baseline/best_model.pth OUTPUT_DIR=/app/models/evaluation
+ENTRYPOINT ["python", "/app/src/test.py"]

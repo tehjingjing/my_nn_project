@@ -1,0 +1,7 @@
+FROM python:3.13-slim
+WORKDIR /app
+COPY requirements-train.txt .
+RUN pip install --no-cache-dir -r requirements-train.txt
+COPY src/ /app/src/
+ENV PYTHONPATH=/app/src DURIAN_DATA_DIR=/app/data MODEL_OUTPUT_DIR=/app/models
+ENTRYPOINT ["python", "/app/src/train.py"]

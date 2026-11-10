@@ -1,0 +1,110 @@
+{
+  "experiment": "learning_rate_0005",
+  "settings": {
+    "epochs": 25,
+    "learning_rate": 0.0005,
+    "batch_size": 16,
+    "dropout": 0.3,
+    "image_size": [
+      128,
+      128
+    ],
+    "seed": 42,
+    "optimizer": "Adam",
+    "loss": "CrossEntropyLoss"
+  },
+  "samples": {
+    "train": 3104,
+    "validation": 443
+  },
+  "classes": [
+    "ALGAL_LEAF_SPOT",
+    "ALLOCARIDARA_ATTACK",
+    "HEALTHY_LEAF",
+    "LEAF_BLIGHT",
+    "PHOMOPSIS_LEAF_SPOT"
+  ],
+  "best_epoch_by_validation_weighted_f1": 21,
+  "best_validation": {
+    "loss": 1.2132217809221546,
+    "accuracy": 0.6930022573363431,
+    "weighted_f1": 0.6957713580799354
+  },
+  "validation_classification_report": {
+    "ALGAL_LEAF_SPOT": {
+      "precision": 0.5681818181818182,
+      "recall": 0.684931506849315,
+      "f1-score": 0.6211180124223602,
+      "support": 73
+    },
+    "ALLOCARIDARA_ATTACK": {
+      "precision": 0.7125,
+      "recall": 0.6263736263736264,
+      "f1-score": 0.6666666666666667,
+      "support": 91
+    },
+    "HEALTHY_LEAF": {
+      "precision": 0.696078431372549,
+      "recall": 0.7319587628865979,
+      "f1-score": 0.71356783919598,
+      "support": 97
+    },
+    "LEAF_BLIGHT": {
+      "precision": 0.875,
+      "recall": 0.7446808510638298,
+      "f1-score": 0.8045977011494252,
+      "support": 94
+    },
+    "PHOMOPSIS_LEAF_SPOT": {
+      "precision": 0.6344086021505376,
+      "recall": 0.6704545454545454,
+      "f1-score": 0.6519337016574586,
+      "support": 88
+    },
+    "accuracy": 0.6930022573363431,
+    "weighted avg": {
+      "precision": 0.7040910554394071,
+      "recall": 0.6930022573363431,
+      "f1-score": 0.6957713580799354,
+      "support": 443
+    }
+  },
+  "validation_confusion_matrix": [
+    [
+      50,
+      8,
+      5,
+      3,
+      7
+    ],
+    [
+      18,
+      57,
+      7,
+      2,
+      7
+    ],
+    [
+      3,
+      9,
+      71,
+      1,
+      13
+    ],
+    [
+      10,
+      2,
+      5,
+      70,
+      7
+    ],
+    [
+      7,
+      4,
+      14,
+      4,
+      59
+    ]
+  ],
+  "test_evaluated": false
+}
