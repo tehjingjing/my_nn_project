@@ -8,6 +8,7 @@ PROJECT_DIR=Path(__file__).resolve().parents[1]
 DEFAULT=PROJECT_DIR/'data'/'durian_leaf_dataset'
 
 def digest(path):
+    # Hash file bytes in chunks so large images need not be loaded into memory at once.
     h=hashlib.sha256()
     with path.open('rb') as f:
         for block in iter(lambda:f.read(1024*1024),b''): h.update(block)
@@ -18,18 +19,21 @@ def main():
     ap.add_argument('--data-dir',type=Path,default=DEFAULT)
     ap.add_argument('--report',type=Path,default=Path('duplicate_audit.csv'))
     a=ap.parse_args(); groups=defaultdict(list)
+    # Inspect every split and class folder; this audit reports duplicates but deletes none.
     for split in ('train','val','test'):
         root=a.data_dir/split
         if not root.is_dir(): raise FileNotFoundError(root)
         for cls in sorted(p for p in root.iterdir() if p.is_dir()):
             for p in sorted(cls.iterdir()):
                 if p.is_file() and p.suffix.lower() in EXTS: groups[digest(p)].append((split,cls.name,p))
+    # Record every file in a duplicate group so any conflicting class labels are visible.
     rows=[]
     for idx,(h,items) in enumerate(groups.items(),1):
         if len(items)>1:
             conflict=len({c for _,c,_ in items})>1
             for split,cls,p in items:
                 rows.append({'group':idx,'sha256':h,'label_conflict':conflict,'split':split,'class':cls,'path':str(p)})
+    # Write the audit as a CSV that can be checked or shared with the report.
     report=a.report.resolve(); report.parent.mkdir(parents=True,exist_ok=True)
     with report.open('w',newline='',encoding='utf8') as f:
         w=csv.DictWriter(f,fieldnames=['group','sha256','label_conflict','split','class','path']);w.writeheader();w.writerows(rows)

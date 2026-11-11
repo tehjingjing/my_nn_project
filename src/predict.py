@@ -10,10 +10,13 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('image')
     ap.add_argument('--model',default=os.getenv('MODEL_PATH','/app/models/baseline/best_model.pth'))
     a=ap.parse_args();device=torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    # Rebuild the same network shape and restore the weights and class-name order.
     ck=torch.load(a.model,map_location=device,weights_only=False);classes=ck['classes'];settings=ck.get('settings',{})
     model=CustomCNN(len(classes),settings.get('dropout',.3)).to(device);model.load_state_dict(ck['state_dict']);model.eval()
+    # Apply the same resize and normalization used for validation and test images.
     tf=transforms.Compose([transforms.Resize((128,128)),transforms.ToTensor(),transforms.Normalize([.485,.456,.406],[.229,.224,.225])])
     with Image.open(a.image) as img: x=tf(img.convert('RGB')).unsqueeze(0).to(device)
+    # Convert raw class scores into probabilities for a readable prediction output.
     with torch.no_grad(): probs=F.softmax(model(x),dim=1)[0]
     order=probs.argsort(descending=True)
     print(f"Predicted class: {classes[order[0]]}")

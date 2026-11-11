@@ -11,6 +11,7 @@ MEAN=[0.485,0.456,0.406]; STD=[0.229,0.224,0.225]
 PROJECT_DIR=Path(__file__).resolve().parents[1]
 
 def scores(labels, preds, classes):
+    # Build a confusion matrix first, then derive per-class and overall metrics.
     n=len(classes); cm=[[0]*n for _ in range(n)]
     for y,p in zip(labels,preds): cm[y][p]+=1
     report={}; total=len(labels); correct=sum(cm[i][i] for i in range(n)); wf=0
@@ -29,24 +30,29 @@ def main():
     ap.add_argument('--output-dir', default=os.getenv('OUTPUT_DIR',str(PROJECT_DIR/'models'/'evaluation')))
     args=ap.parse_args(); out=Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
     device=torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    # Load the selected checkpoint and reuse its saved class order and dropout setting.
     checkpoint=torch.load(args.model,map_location=device,weights_only=False)
     classes=checkpoint['classes']; dropout=checkpoint.get('settings',{}).get('dropout',.3)
+    # The held-out test split is resized and normalised, but never augmented.
     ds=datasets.ImageFolder(Path(args.data_dir)/'test',transform=transforms.Compose([
         transforms.Resize((128,128)),transforms.ToTensor(),transforms.Normalize(MEAN,STD)]))
     if ds.classes!=classes: raise ValueError(f"Test class folders {ds.classes} don't match checkpoint classes {classes}")
     loader=DataLoader(ds,batch_size=32,shuffle=False,num_workers=0)
     model=CustomCNN(len(classes),dropout).to(device); model.load_state_dict(checkpoint['state_dict']); model.eval()
     ys=[]; ps=[]; confs=[]
+    # Evaluation disables gradients because the model weights are not being updated.
     with torch.no_grad():
         for x,y in loader:
             logits=model(x.to(device)); probs=F.softmax(logits,dim=1); p=probs.argmax(1)
             ys.extend(y.tolist()); ps.extend(p.cpu().tolist()); confs.extend(probs.max(1).values.cpu().tolist())
     result=scores(ys,ps,classes)
+    # Compare against a simple baseline that always predicts the training majority class.
     train_counts=checkpoint.get('train_class_counts')
     if train_counts is None: raise ValueError('Checkpoint lacks training class counts; retrain with the current src/train.py')
     majority=max(range(len(classes)),key=lambda i:train_counts[i])
     result['majority_class_baseline']={"class":classes[majority],"accuracy":sum(y==majority for y in ys)/len(ys)}
     result['test_samples']=len(ds); result['device']=str(device)
+    # Save each error with its actual label, predicted label, and model confidence.
     wrong=[]
     for i,(y,p) in enumerate(zip(ys,ps)):
         if y!=p: wrong.append({"image":str(ds.samples[i][0]),"actual":classes[y],"predicted":classes[p],"confidence":confs[i]})

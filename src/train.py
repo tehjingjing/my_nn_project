@@ -44,12 +44,14 @@ def parse_args():
 
 
 def set_seed(seed):
+    # Seed each random-number source used by training and data shuffling.
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
 
 
 def confusion_and_report(labels, predictions, classes):
+    # Rows represent actual classes; columns represent predicted classes.
     matrix = np.zeros((len(classes), len(classes)), dtype=np.int64)
     for actual, predicted in zip(labels, predictions):
         matrix[actual, predicted] += 1
@@ -95,6 +97,7 @@ def validate_images(split_path):
 
 
 def run_epoch(model, loader, criterion, device, optimizer=None):
+    # An optimizer is supplied during training; without one this is validation.
     training = optimizer is not None
     model.train(training)
     total_loss, total_correct, total = 0.0, 0, 0
@@ -106,6 +109,7 @@ def run_epoch(model, loader, criterion, device, optimizer=None):
             if training:
                 optimizer.zero_grad(set_to_none=True)
             logits = model(images)
+            # CrossEntropyLoss consumes raw class scores (logits) and integer labels.
             loss = criterion(logits, labels)
             if training:
                 loss.backward()
@@ -143,6 +147,7 @@ def main():
     validate_images(val_path)
 
     train_transform = transforms.Compose([
+        # Augmentation is applied only to training images to expose the model to variation.
         transforms.Resize(IMAGE_SIZE),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(15),
@@ -150,6 +155,7 @@ def main():
         transforms.Normalize(mean=NORMALIZE_MEAN, std=NORMALIZE_STD),
     ])
     eval_transform = transforms.Compose([
+        # Validation images use deterministic preprocessing for fair model comparison.
         transforms.Resize(IMAGE_SIZE),
         transforms.ToTensor(),
         transforms.Normalize(mean=NORMALIZE_MEAN, std=NORMALIZE_STD),
@@ -203,6 +209,7 @@ def main():
                 f"weighted F1 {val['weighted_f1']:.4f}", flush=True,
             )
             if val["weighted_f1"] > best_f1:
+                # Keep the checkpoint with the strongest validation weighted F1.
                 best_f1, best_epoch, best_val = val["weighted_f1"], epoch, val
                 torch.save({
                     "state_dict": model.state_dict(),
