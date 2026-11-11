@@ -67,9 +67,10 @@ With the test image built and a checkpoint available, run:
 ```bash
 docker run --rm \
   -v "$(pwd)/models:/app/models:ro" \
-  -v "/absolute/path/to/leaf.jpg:/app/leaf.jpg:ro" \
-  --entrypoint python durian-test /app/src/predict.py /app/leaf.jpg \
-  --model /app/models/baseline/best_model.pth
+  -v "$(pwd)/demo/new_leaf.jpg:/app/new_leaf.jpg:ro" \
+  --entrypoint python durian-test \
+  /app/src/predict.py /app/new_leaf.jpg \
+  --model /app/models/learning_rate_0005/best_model.pth
 ```
 
 ## Reproducibility notes
